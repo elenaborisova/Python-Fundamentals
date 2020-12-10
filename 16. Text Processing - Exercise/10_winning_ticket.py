@@ -1,58 +1,42 @@
-def validate_ticket(ticket):
-    if len(ticket) == 20:
-        return True
+def is_valid(ticket):
+    return len(ticket) == 20
+
+
+def is_jackpot(ticket):
+    for win_char in win_chars:
+        if win_char * 20 == ticket:
+            print(f'ticket "{ticket}" - 10{win_char} Jackpot!')
+            return True
     return False
 
 
-def check_winning_symbols(ticket):
-    winning_chars = ["@", "#", "$", "^"]
-    win_char = ""
-    curr_char = ""
-    curr_count = 0
-    max_count = 0
+def is_match(ticket):
+    left_half = ticket[:10]
+    right_half = ticket[10:]
 
-    for i in range(len(ticket)):
-        char = ticket[i]
-        if char in winning_chars:
-            if char != curr_char or curr_char == "":
-                curr_count = 1
-                curr_char = char
-            else:
-                curr_count += 1
-                curr_char = char
-        else:
-            if curr_count > max_count:
-                max_count = curr_count
-                win_char = curr_char
-            curr_count = 0
+    for win_char in win_chars:
+        if win_char * 6 in left_half and win_char * 6 in right_half:
+            left_count = left_half.count(win_char)
+            right_count = right_half.count(win_char)
+            count = min(left_count, right_count)
+            print(f'ticket "{ticket}" - {count}{win_char}')
+            return True
 
-    if curr_count > max_count:
-        max_count = curr_count
-        win_char = curr_char
-
-    if max_count >= 6:
-        return max_count, win_char
-    return 0, ""
+    return False
 
 
 tickets = input().split(", ")
+win_chars = ["@", "$", "#", "^"]
 
 for ticket in tickets:
     ticket = ticket.strip()
 
-    if validate_ticket(ticket):
-        first_half = ticket[:10]
-        second_half = ticket[10:]
-        first_count, first_char = check_winning_symbols(first_half)
-        second_count, second_char = check_winning_symbols(second_half)
-
-        if first_count == second_count == 10 and first_char == second_char:
-            print(f'ticket "{ticket}" - {first_count}{first_char} Jackpot!')
-        elif first_count >= 6 and second_count >= 6 and first_char == second_char:
-            print(f'ticket "{ticket}" - {min(first_count, second_count)}{first_char}')
-        else:
-            print(f'ticket "{ticket}" - no match')
-    else:
+    if not is_valid(ticket):
         print("invalid ticket")
+        continue
+    if is_jackpot(ticket):
+        continue
+    if is_match(ticket):
+        continue
 
-
+    print(f'ticket "{ticket}" - no match')
