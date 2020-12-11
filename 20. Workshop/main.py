@@ -1,7 +1,10 @@
 import tkinter
 from tkcalendar import DateEntry
 from tkinter import scrolledtext
+from tkinter.ttk import Combobox
 import json
+
+all_tasks_to_write = []
 
 
 def clear_view(tk):
@@ -9,9 +12,47 @@ def clear_view(tk):
         s.destroy()
 
 
+def all_tasks_from_file():
+    with open("db.txt", "r") as file:
+        try:
+            all_existing_tasks = json.load(file)
+        except json.decoder.JSONDecodeError:
+            existing_tasks = []
+    return existing_tasks
+
+
+def write_tasks_to_file(all_tasks_to_write, existing_tasks=None):
+    with open("db.txt", "r+") as file:
+        if not existing_tasks:
+            existing_tasks = all_tasks_from_file()
+        file.seek(0)
+        file.truncate()
+        all_tasks_to_write.extend(existing_tasks)
+        json.dump(*all_tasks_to_write, file)
+
+
+def edit_task(tk, value):
+    pass
+
+
+def delete_task(tk, value):
+    existing_tasks = all_tasks_from_file()
+    existing_tasks.remove(eval(value))
+    write_tasks_to_file(all_tasks_to_write, existing_tasks)
+
+
+def render_list_task_view(tk):
+    clear_view(tk)
+    box = Combobox(tk)
+    existing_tasks = all_tasks_from_file()
+    box['values'] = existing_tasks
+    box.grid(row=0, column=0)
+    tkinter.Button(tk, text="Edit", bg="yellow", command=lambda: edit_task(tk, box.get())).grid(row=1, column=0, pady=20)
+    tkinter.Button(tk, text="Delete", bg="red", command=lambda: delete_task(tk, box.get())).grid(row=1, column=1, padx=20, pady=30)
+
+
 def create_task(**kwargs):
-    with open("db.txt", "w") as file:
-        json.dump(kwargs, file)
+    all_tasks_to_write.append(kwargs)
 
 
 def render_create_task_view(tk):
@@ -42,13 +83,15 @@ def render_create_task_view(tk):
 
 
 def render_main_view(tk):
-    tkinter.Button(tk, text="List tasks", bg="blue", fg="white").grid(row=0, column=0, padx=200, pady=200)
-    tkinter.Button(tk, text="Create tasks", bg="green", fg="white", command=lambda: render_create_task_view(tk)).grid(row=0, column=1, padx=0, pady=200)
+    tkinter.Button(tk, text="List tasks", bg="blue", fg="white", command=lambda: render_list_task_view(tk)).grid(
+        row=0, column=0, padx=200, pady=200)
+    tkinter.Button(tk, text="Create tasks", bg="green", fg="white", command=lambda: render_create_task_view(tk)).grid(
+        row=0, column=1, padx=0, pady=200)
 
 
 tk = tkinter.Tk()
 tk.geometry("700x500")
 render_main_view(tk)
 
-
 tk.mainloop()
+write_tasks_to_file(all_tasks_to_write)
