@@ -1,0 +1,3 @@
+Babel==2.9.0
+pytz==2020.4
+tkcalendar==1.6.1
